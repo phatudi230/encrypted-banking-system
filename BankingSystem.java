@@ -1,5 +1,3 @@
-//Banking System that encrypts Account number
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -56,8 +54,9 @@ class Account {
     private double balance;
     private List<Transaction> transactions;
     private List<Beneficiary> beneficiaries;
-    
 
+    
+    //constractor to hold account details
     public Account(String crdHolder, String accNumber) throws Exception {
         this.crdHolder = crdHolder;
         this.accNumber = accNumber;
@@ -66,8 +65,10 @@ class Account {
         this.transactions = new ArrayList<>();
         this.beneficiaries = new ArrayList<>();
     }
-    public  void printHistory() {
-        System.out.println("Transaction History for Account: " + encryptedAccountNumber);
+    //transaction history
+    public  void printHistory() { 
+        System.out.println("Transaction History for Account: " + crdHolder);
+        System.out.println("Ecrypted Account Number: " + encryptedAccountNumber);
         for (Transaction transaction : transactions) {
             System.out.println(transaction.getType() + ": " + transaction.getAmount());
         }
@@ -84,7 +85,7 @@ class Account {
     public double getBalance() {
         return balance;
     }
-
+    //deposit method
     public void deposit(double amount) {
         if (amount > 0) {
             balance += amount;
@@ -92,10 +93,22 @@ class Account {
         }
     }
 
+
+    //withdrawal method
     public void withdraw(double amount) {
         if (amount > 0 && amount <= balance) {
             balance -= amount;
             transactions.add(new Transaction("Withdraw", amount));
+        }
+    }
+    //transfer method
+    public void transfer(String recipientAccNumber, double transferAmount) {
+        if ( transferAmount <= balance ) {
+            balance -= transferAmount;
+            System.out.println("~~~~~~~~~~~Transfer successful.~~~~~~~~~~~~~");
+            transactions.add(new Transaction("Transfer", transferAmount));
+        } else {
+            System.out.println("Transfer failed. Check account details and balance.");
         }
     }
     public void addBeneficiary(String beneficiaryName, String beneficiaryAccountNumber) {
@@ -107,6 +120,9 @@ class Account {
     }
      
 }
+
+
+
 //AES encryption decryption algorithm class
 class EncryptionUtil {
     private static final String ALGORITHM = "AES";
@@ -129,6 +145,7 @@ class EncryptionUtil {
         return new String(decryptedData);
     }
 }
+
 //data storage class
 class Bank {
     private List<Account> accounts = new ArrayList<>();
@@ -146,6 +163,7 @@ class Bank {
             accounts.removeIf(account -> {
                 try {
                     return account.getAccountNumber().equals(accNumber);
+                    
                 } catch (Exception e) {
                     System.out.println("Error closing account: " + e.getMessage());
                     return false;
@@ -168,35 +186,7 @@ class Bank {
         }
         return null;
     }
-    public void deposit(double depositAmount) {
-        if (depositAmount > 0) {
-            balance += depositAmount;
-            
-            transactions.add(new Transaction("Deposit", depositAmount));
-        }
-    }
-
-    public void withdraw(double withdrawAmount) {
-        if (withdrawAmount > 0 && withdrawAmount <= balance) {
-            balance -= withdrawAmount;
-            
-            transactions.add(new Transaction("Withdraw", withdrawAmount));
-        }
-    }
-
-    public void transfer(Account fromAccount, Account toAccount, double amount) {
-        if (fromAccount != null && toAccount != null && amount > 0 && fromAccount.getBalance() >= amount) {
-            fromAccount.withdraw(amount);
-            toAccount.deposit(amount);
-            System.out.println("~~~~~~~~~~~Transfer successful.~~~~~~~~~~~~~");
-            transactions.add(new Transaction("Transfer", transferAmount));
-        } else {
-            System.out.println("Transfer failed. Check account details and balance.");
-        }
-    }
-    
-
-    public void generateDailyReport() {
+    public void details() {
         System.out.println("\n~~~~~~~ Account Details~~~~~:");
         for (Account account : accounts) {
             try {
@@ -215,7 +205,6 @@ public class BankingSystem {
         Bank bank = new Bank();
         Scanner sc = new Scanner(System.in);
 
-      
             try {
                 System.out.println("```````````````````````````````\nHello, welcome to SwiftPay!!\nLet's create an Account.\n````````````````````````````````");
                 System.out.println("Enter cardHolder:");
@@ -226,11 +215,11 @@ public class BankingSystem {
         while (true) {
 
                 System.out.println("____________________________________________________________\n");
-                System.out.println("Select options:\n1. Deposit\n2. Transfer\n3. Withdraw\n4. Transactions\n5. Add Beneficiary\n6. Details\n7. Exit\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                System.out.println("Select options:\n1. Deposit\n2. Transfer\n3. Withdraw\n4. Transactions\n5. Add Beneficiary\n6. Details\n7. Close Account\n8.Beneficiaries\n9.Exit.\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                 int option = sc.nextInt();
                 sc.nextLine(); // Consume newline
 
-                if (option == 7) {
+                if (option == 9) {
                     break;
                 }
 
@@ -249,10 +238,10 @@ public class BankingSystem {
                         case 2:
                             System.out.println("Enter recipient's Account Number:");
                             String recipientAccNumber = sc.nextLine();
-                            Account recipientAccount = bank.getAccount(recipientAccNumber);
+                            //Account recipientAccount = bank.getAccount(recipientAccNumber);
                             System.out.println("Enter amount to transfer:");
                             double transferAmount = sc.nextDouble();
-                            bank.transfer(account, recipientAccount, transferAmount);
+                            account.transfer(recipientAccNumber, transferAmount);
                             break;
                         case 3:
                             System.out.println("Enter amount to withdraw:");
@@ -272,8 +261,20 @@ public class BankingSystem {
                             System.out.println("Beneficiary added successfully.");
                             break;
                         case 6:
-                            bank.generateDailyReport();
+                            bank.details();
                             break;
+                        case 7:
+                            System.out.println("Sorry to see you go");
+                            System.out.println("Enter your account number:");
+                            String AccNumber = sc.nextLine();
+                            bank.closeAccount(AccNumber);
+                            break;
+                        case 8:
+                            System.out.println("Beneficiaries:");
+                            for (Beneficiary beneficiary : account.getBeneficiaries()) {
+                                System.out.println("Name: " + beneficiary.getName() + ", Account Number: " + beneficiary.getAccountNumber());
+                            }
+                            break; 
                         default:
                             System.out.println("Invalid option.");
                     }
@@ -286,90 +287,5 @@ public class BankingSystem {
                 System.out.println("Error: " + e.getMessage());
         }
         sc.close();
-    
-
+    }
 }
-}
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//*******************************************the end**********************
